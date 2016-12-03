@@ -1,0 +1,10 @@
+h1 {
+	text-align: center;
+}
+
+pre { font-family: monospace; }
+
+table, th, td {
+    border: 1px solid black;
+    border-spacing: 4px;
+}
