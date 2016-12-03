@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hacking JS Classes</title>
+    <link rel="stylesheet" type="text/css" href="stylesheet.css">
+  </head>
+  <body>
+    <h1>Hacking Classes in JavaScript!</h1>
+    <h2>Welcome!</h2>
+    <p>
+    	Let’s take a look at how to “hack” together classes using JavaScript. Why, you ask, is “hack” in quotation marks? Keep reading this page and you’ll find out!
+    </p>
+    <br>
+    <h2>Who is the intended audience for this tutorial?</h2>
+    <p>
+    	Great question! If you are learning JavaScript for the first time and you’re previous programming experience has been with languages like C, C++, Java, or any other language that emphasizes object oriented programming with classes, this tutorial is for you!
+    </p>
+    <br>
+    <h2>Let’s set the stage.</h2>
+    <p>
+    	So you’ve started to learn about programming in JavaScript. Maybe you’ve read through a few tutorials or glanced at a few chapters in a text book, and you’re feeling confused because the authors have yet to mention a concept so pervasive in traditional programming languages: <b>classes!</b>
+    </p>
+  	<p>
+    	“How,” you must be thinking, “could the academic authorities have forgotten about classes? Everyone knows object oriented programming is the only way to create applications.”
+  	</p>
+	<p>
+    	Well, it’s not so much that they forgot, but rather this is a consequence of the <b>underlying design philosophy</b> of the JavaScript language, the <b>nature of the problems</b> (use cases) JavaScript is meant to solve, and the <b>environment</b> in which JavaScript operates in. 
+  	</p>
+	<p>
+    	Let’s briefly take a look at these differences by comparing JavaScript to C++.
+  	</p>
+  	<br>
+  	<table>
+	 <thead>
+	  <tr>
+	   <th> 
+	   <th> JavaScript
+	   <th> C++
+	 <tbody>
+	  <tr>
+	   <th> Environment
+	   <td> Web Browser, Server Side packages
+	   <td> Executable libraries installed as part of system Operating System
+	  <tr>
+	   <th> Use Cases
+	   <td> Interactive Webpages, Server Side Scripting
+	   <td> Consumer/Enterprise applications, Operating Systems, Games
+	  <tr>
+	   <th> Design Philosophy
+	   <td> Dynamic, Untyped, Expressive, Prototypal inheritance
+	   <td> Typed, Efficient, Fast, Low-level controls, Subclassing hierarchy
+	 </table>
+	 <br>
+	<p>
+    	In short, JavaScript was designed to be a simple, yet powerfully expressive language because it is intended to run in your browser and make your web pages interactive.
+  	</p>
+  	<p>
+		So why is all this important? It means that JavaScript architecture wasn’t designed specifically with object oriented programming or classes as a foundational pillar. Strictly speaking, we don’t <em>need</em> classes to accomplish our goals in JavaScript.
+  	</p>
+  	<p>
+		But, and this is a big but, lots of programmers are classically trained and feel better when they can use programming patterns they are familiar with. This is where the “hacking” part of classes comes into play – we can group together JavaScript objects and functions in ways that resemble the classes of classical languages.
+  	</p>
+    <p>
+		How about we look at some examples? Our goal for the rest of this tutorial will be to build up a JavaScript class that mimics the behavior of a corresponding C++ class. We will be doing this by leveraging Closures, a JavaScript feature we will explore a little later. For now, on to the first code sample!
+  	</p>
+  	<br>
+  	<h2>The C++ Class we want to emulate in JavaScript.</h2>
+  	<pre>
+		class Car {
+		    
+			public:
+			    Car(std::string model, std::string make, int year, bool used){
+			        this->model = model;
+			        this->make = make;
+			        this->year = year;
+			        this->used = used;
+			    }
+			    
+			    std::string GetModel() {
+			        return this->model;
+			    }
+			    
+			    std::string GetMake() {
+			        return this->make;
+			    }
+			    
+			    int GetYear() {
+			        return this->year;
+			    }
+			    
+			    bool IsUsed() {
+			        return this->used;
+			    }
+			    
+			    void StartEngine() {
+			        LockDoors();
+			        std::cout << "vroom vroom" << std::endl;
+			    }
+			    
+			private:
+			    std::string model;
+			    std::string make;
+			    int year;
+			    bool used;
+			    void LockDoors() {
+			        std::cout << "doors locked!" << std::endl;
+			    }
+			};
+  	</pre>
+
+    <p>
+		Here we have defined a Car class with a constructor, 4 public Getter methods, 1 public method, 4 private variables, and 1 private method.
+  	</p>
+    <p>
+		Here's how we would instantiate an object of the Car class and use it inside a C++ program.
+  	</p>
+  	<pre>
+		int main() {
+		    Car myCar("corolla", "toyota", 2013, true);
+		    std::cout << myCar.GetMake() << std::endl;
+		    std::cout << myCar.GetModel() << std::endl;
+		    std::cout << myCar.GetYear() << std::endl;
+		    
+		    if(myCar.IsUsed()) {
+		        std::cout << "true" << std::endl;
+		    } else {
+		        std::cout << "false" << std::endl;
+		    }
+		    
+		    myCar.StartEngine();
+		    return 0;
+		}
+
+		/*-----output-----*/
+		//toyota
+		//corolla
+		//2013
+		//true
+		//doors locked!
+		//vroom vroom
+  	</pre>
+    <p>
+		The first thing to look at here is the Car's constructor function which takes several parameters and returns a new Car object assigned to the variable myCar. The myCar's private variables can be accessed through the Get functions, but their values cannot be changed. Similarly, the private method LockDoors() is not directly callable by the client. Instead, when the public method StartEngine() is called, LockDoors() is called as part of the method body.
+  	</p>
+    <p>
+		Memory for the myCar object is allocated on the stack inside the main() function's stack-frame and will be released when the program hits the <code>return 0</code> line.
+  	</p>
+    <p>
+		Now, let's see how we can use JavaScript to go about mimicking the behavior of a C++ class that can instantiate objects of the class using a constructor call, protect certain member variables from unauthorized changes while at the same time giving the client a way to view those values.
+  	</p>
+  	<br>
+  	<h2>Requirements for our JavaScript class.</h2>
+  	<p>
+  		Based on the C++ Car class, the requirements for our JavaScript class are as follows:
+  		<ul>
+  			<li>A constructor function that takes 4 variables representing make, model, year, condition and returns a new Car object
+  			<li>4 private variables make, model, year, and used that can be accessed but not changed
+  			<li>A public method that calls a private method to perform work
+  		</ul>
+  	</p>
+    <p>
+		Let's start with something you are probably already familiar with and have already seen.
+  	</p>
+  	<pre>
+  		var car = {};
+  	</pre>
+    <p>
+		In this first example we have created our Car as a JavaScript <em>object literal</em>. This isn't a class, but instead an actual instance of an object. There isn't much special about our Car, but it will serve as our starting point. From here we can add our required variables as follows.
+  	</p>
+  	<pre>
+  		var car = {
+  			var model;
+  			var make;
+  			var year;
+  			var used;
+  		};
+  	</pre>
+    <p>
+		This Car is starting to look more like our C++ examples, but we need to talk about a few points. First of all, this Car has no privacy! We really don't need Getters like we do in the C++ class because variables inside object literals are public and can be accessed, updated and deleted via dot notation:
+  	</p>
+  	<pre>
+  		car.model = "whatever I want";
+  	</pre>
+    <p>
+		This is an issue because our requirement is to have private member variables in our car objects that can't be modified but can be read. We also don't have a constructor function we can use as a template for generating Car objects. Since we can't use JavaScript's object literal notation for our Car class, let's abandon it and instead focus on the constructor function.
+  	</p>
+    <p>
+		By convention, we capitalize the first letter of class constructors in JavaScript to make it easier to visually identify them in our code.
+  	</p>
+  	<pre>
+		function Car(model, make, year, used){
+		    this.model = model;
+		    this.make = make;
+		    this.year = year;
+		    this.used = used;
+		}
+  	</pre>
+    <p>
+		To create an instance of the Car class, we will need to call the constructor using the new keyword and pass it our parameters.
+  	</p>
+  	<pre>
+		var myCar = new Car("Corolla", "Toyota", 2013, true);
+  	</pre>
+    <p>
+		Excellent! Now we have a constructor that takes the parameters we pass it and it returns a car object. However, we still have the same problem - our object's member variables are public and freely accessible. Let's modify our constuctor function to fix this. To make member variables private we are going to need to use Closures. 
+  	</p>
+    <p>
+		Because JavaScript variables live in function scope as opposed to block scope (like C++), we can do some interesting things with functions that allow us to effectively create private variables. Let's make another Car creator function and examine the differences.
+  	</p>
+  	<pre>
+
+  		var carCreator = function(model, make, year, used) {
+  			return {
+  				get_model: function() {return model;},
+  				get_make: function() {return make;},
+  				get_year: function() {return year;},
+  				isUsed: function() {return used;}
+  			};
+  		};
+
+  		//now we can use the carCreator to create an object instance with private variables that can't be changed
+
+  		var myCar = carCreator("Corolla", "Toyota", 2013, true);
+
+  		console.log(myCar.get_model());
+  		//output = Corolla
+
+  	</pre>
+    <p>
+		If you run this code everything will work fine even. <code>carCreator</code> is a different kind of car constructor that also allows us to pass in parameters and returns a new object. We do not capitalize carCreator because it is designed to work without the <code>new</code> keyword.
+  	</p>
+    <p>
+		Let's talk about what is going on in this sample. First, it's important to note that parameters passed into the carCreator function behave as local variables defined within the function body. What is interesting is that we return an object from the carCreator function that itself has references to these parameters. You would think that once we come to the closing curly brace of the function these variables would no longer be accessible, but you'd be wrong. That is block scope thinking, not function scope thinking.
+  	</p>
+    <p>
+		When <code>carCreator</code> is invoked, a new function scope is created on the stack along with its parametized variables. The return value of <code>carCreator</code> is another object with references to the <code>carCreator</code>'s parametized variables. Because the variables were created as a result of a function invocation and we return an object with references to those variables, the variables are kept alive. This is why our Getter functions <code>get_model, get_make, get_year, isUsed</code> are still able to access them, but they are not accessible and changeable through dot notation.
+  	</p>
+    <p>
+		So we've done it! We found a way to effectively create private member variables that we can read but not edit. Let's finish up our JavaScript example by adding the <code>StartEngine()</code> public method and <code>LockDoors()</code> private helper:
+  	</p>
+  	<pre>
+
+  		var carCreator = function(model, make, year, used) {
+
+  			var LockDoors = function() {
+  				console.log("Doors Locked");
+  			};
+
+  			return {
+  				get_model: function() {return model;},
+  				get_make: function() {return make;},
+  				get_year: function() {return year;},
+  				isUsed: function() {return used;},
+  				StartEngine: function() {
+  					LockDoors();
+  					console.log("vroom vroom");
+  				}
+  			};
+  		};
+  	</pre>
+    <p>
+		As a final example let's illustrate the usage of a Setter method that will allow us to change variables we allow it to change. The benefit of a using a Setter to change a memeber variable is that we can implement logic to restrict what the client can and cannot do to the member variable. As an example, let's add a private needsOil variable and a Setter that can only set it to either true or false.
+  	</p>
+  	<pre>
+
+  		var carCreator = function(model, make, year, used) {
+
+  			var LockDoors = function() {
+  				console.log("Doors Locked");
+  			};
+
+  			var needsOil = false;
+
+  			return {
+  				set_needsOil: function(oil) {
+  					if(oil != true && oil != false ) {
+  						console.log("Use true or false. Value not updated.");
+  						return;
+  					}
+  					needsOil = oil;
+  				},
+  				get_model: function() {return model;},
+  				get_make: function() {return make;},
+  				get_year: function() {return year;},
+  				isUsed: function() {return used;},
+  				StartEngine: function() {
+  					LockDoors();
+  					console.log("vroom vroom");
+  				}
+  			};
+  		};
+  	</pre>
+    <p>
+		Again, the local variable needsOil lives on and can be accessed by the Setter because it is referenced by an object that was created as part of a function invocation.
+  	</p>
+	<br>
+    <h2>Summary.</h2>
+    <p>
+    	So there you have it! We have officially hacked together something that resembles classes in JavaScript using Getters and Setters in combination with Closures. As we have seen, in order to mimic the concept of private variables we need to use Closures which capture the variables that exist withing their context inside a stack frame that lives on after the function defining them returns. We can be creative with how we use Getter and Setter functions to interact with these private variables and limit the complexities our clients have to interact with.
+    </p>
+  </body>
+</html>
